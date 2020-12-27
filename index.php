@@ -1,12 +1,14 @@
-<?php
-  require_once './ImageUploader.php';
+<?php 
+  require __DIR__ . '/Models/dbconnection.php';
+  require __DIR__ . '/View/ImageUploader.php';
+  $DB = new CreateDBinstance();
+  $DBconnection = $DB->dbInstanceConnection();
   if (
     isset($_POST['submitUpload'])
     && (isset($_FILES['targetFile']) && $_FILES['targetFile']["name"] !== ""))
   {
-      $files = new ImageUploader($_FILES['targetFile']);
       $uploadDir = './uploads/';
-      $targetFile = $uploadDir.$files->getName();
+      $files = new ImageUploader($uploadDir, $_FILES['targetFile']);
 
       if ($files->getError() !== 0) {
           $files->errorMessage($files->getError());
@@ -20,13 +22,7 @@
           echo $files->errorMessage(91);
           return;
       }
-
-      $number = 1;
-      while (file_exists($targetFile)) {
-          $targetFile = $uploadDir.$files->getPathInfo()['filename'].'-'.$number.'.'.$files->getPathInfo()['extension'];
-          $number++;
-      }
-      $isUploader = move_uploaded_file($files->getTmpName(), $targetFile);
+      $isUploader = $files->renameAddFile($files->getTargetFile());
       echo $isUploader ? $files->errorMessage(0) : $files->errorMessage(4);
       exit;
   }

@@ -9,13 +9,17 @@ class ImageUploader
     private $pathInfo;
     private $fileType = ['png','jpg','jpeg','gif'];
 
-    public function __construct($file)
+    public function __construct($uploadDir, $file)
     {
         $this->name = $file['name'];
         $this->tmpName = $file['tmp_name'];
         $this->error = $file['error'];
         $this->size = $file['size'];
         $this->pathInfo = pathinfo($file['name']);
+        $this->number = 1;
+        $this->targetFile = $uploadDir.$file['name'];
+        $this->uploadDir = $uploadDir;
+
     }
 
     public function getName()
@@ -46,6 +50,10 @@ class ImageUploader
     public function getType()
     {
         return $this->fileType;
+    }
+
+    public function getTargetFile() {
+      return $this->targetFile;
     }
 
     public function errorMessage($errNumber)
@@ -87,5 +95,14 @@ class ImageUploader
             break;
           }
         return $errorText;
+    }
+
+    public function renameAddFile($targetFile) {
+      
+      while (file_exists($targetFile)) {
+          $targetFile = $this->uploadDir.$this->getPathInfo()['filename'].'-'.$this->number.'.'.$this->getPathInfo()['extension'];
+          $this->number++;
+      }
+      return move_uploaded_file($this->getTmpName(), $targetFile);
     }
 }
