@@ -1,7 +1,5 @@
 <?php
   require_once './ImageUploader.php';
-
-  
   if (
     isset($_POST['submitUpload'])
     && (isset($_FILES['targetFile']) && $_FILES['targetFile']["name"] !== ""))
