@@ -1,12 +1,12 @@
-<?php 
+<?php
   require __DIR__ . '/Models/dbconnection.php';
   require __DIR__ . '/View/ImageUploader.php';
-  $DB = new CreateDBinstance();
-  $DBconnection = $DB->dbInstanceConnection();
+  $db = new CreateDBinstance();
+  $dbConnection = $db->dbInstanceConnection();
+  $tableImage = $_SERVER["T_IMAGES"];
   if (
     isset($_POST['submitUpload'])
-    && (isset($_FILES['targetFile']) && $_FILES['targetFile']["name"] !== ""))
-  {
+    && (isset($_FILES['targetFile']) && $_FILES['targetFile']["name"] !== "")) {
       $uploadDir = './uploads/';
       $files = new ImageUploader($uploadDir, $_FILES['targetFile']);
 
@@ -23,7 +23,12 @@
           return;
       }
       $isUploader = $files->renameAddFile($files->getTargetFile());
-      echo $isUploader ? $files->errorMessage(0) : $files->errorMessage(4);
+      if ($isUploader) {
+          $query ="INSERT INTO $tableImage (image_name) VALUES (:image_name)";
+          $insertStmt = $dbConnection->prepare($query);
+          $insertStmt->bindValue(':image_name', htmlspecialchars(strip_tags($files->getTargetFile())), PDO::PARAM_STR);
+          echo $insertStmt->execute() ? $files->errorMessage(0) : $files->errorMessage(4);
+      }
       exit;
   }
 ?>
