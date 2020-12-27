@@ -1,41 +1,35 @@
 <?php
-  require_once './errors.php';
-  if (isset($_POST['submitUpload']) && isset($_FILES['targetFile'])) {
+  require_once './ImageUploader.php';
+
+  
+  if (
+    isset($_POST['submitUpload'])
+    && (isset($_FILES['targetFile']) && $_FILES['targetFile']["name"] !== ""))
+  {
+      $files = new ImageUploader($_FILES['targetFile']);
       $uploadDir = './uploads/';
-      $targetFile = $uploadDir.$_FILES['targetFile']['name'];
-      $tmpName = $_FILES['targetFile']['tmp_name'];
-      $errorInt = $_FILES['targetFile']['error'];
-      $fileSize = $_FILES['targetFile']['size'];
-      $pathInfo = pathinfo($_FILES['targetFile']['name']);
-      $fileType = ['png','jpg','jpeg','gif'];
+      $targetFile = $uploadDir.$files->getName();
 
-      $errorMessage = new ErrorMessage();
-
-      // 同名ファイルが保存先に存在するか確認
-      if ($errorInt === 1) {
-        echo $errorMessage->error(1);
-        return;
-      } elseif ($fileSize > 1048576 /*1048576 = 1MB*/) {
-        echo $errorMessage->error(2);
-        return;
-      } elseif ($errorInt === 4) {
-        header('Location: index.php');
-        exit;
+      if ($files->getError() !== 0) {
+          $files->errorMessage($files->getError());
+          return;
       }
-
-      if (!in_array($pathInfo['extension'], $fileType)) {
-        echo $errorMessage->error(91);
-        return;
+      if ($files->getSize() > 1048576 /*1048576 = 1MB*/) {
+          echo $files->errorMessage(2);
+          return;
+      }
+      if (!in_array($files->getPathInfo()['extension'], $files->getType())) {
+          echo $files->errorMessage(91);
+          return;
       }
 
       $number = 1;
       while (file_exists($targetFile)) {
-          var_dump($uploadDir.$pathInfo['filename']);
-          $targetFile = $uploadDir.$pathInfo['filename'].'-'.$number.'.'.$pathInfo['extension'];
+          $targetFile = $uploadDir.$files->getPathInfo()['filename'].'-'.$number.'.'.$files->getPathInfo()['extension'];
           $number++;
       }
-      $isUploader = move_uploaded_file($tmpName, $targetFile);
-      echo $isUploader ? $errorMessage->error(0) : $errorMessage->error(4);
+      $isUploader = move_uploaded_file($files->getTmpName(), $targetFile);
+      echo $isUploader ? $files->errorMessage(0) : $files->errorMessage(4);
       exit;
   }
 ?>
