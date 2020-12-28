@@ -24,10 +24,7 @@
       }
       $isUploader = $files->renameAddFile($files->getTargetFile());
       if ($isUploader) {
-          $query ="INSERT INTO $tableImage (image_name) VALUES (:image_name)";
-          $insertStmt = $dbConnection->prepare($query);
-          $insertStmt->bindValue(':image_name', htmlspecialchars(strip_tags($files->getTargetFile())), PDO::PARAM_STR);
-          echo $insertStmt->execute() ? $files->errorMessage(0) : $files->errorMessage(4);
+          $db->insert($tableImage, "image_name", $files);
       }
       exit;
   }
